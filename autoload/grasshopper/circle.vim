@@ -4,7 +4,7 @@ let s:circle_bufs = []
 let s:circle_idx = -1
 
 function! s:show_buf(buf) abort
-  exe "buffer! " . a:buf.bufnr
+  exe "silent buffer! " . a:buf.bufnr
 endfunction
 
 function! s:get_accesstick(buf) abort
@@ -12,12 +12,14 @@ function! s:get_accesstick(buf) abort
 endfunction
 
 function! s:show_next(step) abort
+  let temp = s:circle_idx
   let s:circle_idx = grasshopper#util#shift_idx(
     \ 0,
     \ len(s:circle_bufs),
     \ a:step,
     \ s:circle_idx
     \ )
+  echo temp s:circle_idx map(copy(s:circle_bufs), {_, d -> d.name})
   call s:show_buf(s:circle_bufs[s:circle_idx])
 endfunction
 
@@ -35,6 +37,7 @@ function! grasshopper#circle#start(conf_idx) abort
   call grasshopper#validate#validate_config(g:grasshopper_config)
 
   if len(s:circle_conf)
+    " If some circle is already in action, then user's :map must be suppressed
     return
   endif
 
@@ -59,7 +62,7 @@ function! grasshopper#circle#start(conf_idx) abort
     call s:show_next(1)
     while len(s:circle_conf)
       redraw " otherwise vim does not update the window content prior getchar()
-      call s:show_prompt()
+      "call s:show_prompt()
       let c = grasshopper#tools#getc()
       if index(s:circle_conf.map, c) != -1
         call s:show_next(1)
