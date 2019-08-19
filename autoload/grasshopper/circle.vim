@@ -1,9 +1,10 @@
+let s:circle_conf_idx = ""
 let s:circle_conf = {}
 let s:circle_bufs = []
 let s:circle_idx = -1
 
 function! s:show_buf(buf) abort
-  exe "buffer " . a:buf.bufnr
+  exe "buffer! " . a:buf.bufnr
 endfunction
 
 function! s:get_accesstick(buf) abort
@@ -17,8 +18,13 @@ function! s:show_next(step) abort
     \ a:step,
     \ s:circle_idx
     \ )
-  echo "show_next" s:circle_idx
   call s:show_buf(s:circle_bufs[s:circle_idx])
+endfunction
+
+function! s:show_prompt() abort
+  echohl MoreMsg
+  echo printf("Grasshopper maping for \"%s\": ", s:circle_conf_idx)
+  echohl None
 endfunction
 
 function! grasshopper#circle#start(conf_idx) abort
@@ -36,7 +42,7 @@ function! grasshopper#circle#start(conf_idx) abort
     throw a:conf_idx . " is not present in g:grasshopper_config"
   endif
 
-  echo "init"
+  let s:circle_conf_idx = a:conf_idx
   let s:circle_conf = g:grasshopper_config[a:conf_idx]
   let buf_current = bufnr("")
   let bufs = getbufinfo()
@@ -53,21 +59,20 @@ function! grasshopper#circle#start(conf_idx) abort
     call s:show_next(1)
     while len(s:circle_conf)
       redraw " otherwise vim does not update the window content prior getchar()
+      call s:show_prompt()
       let c = grasshopper#tools#getc()
-      if c == s:circle_conf.map
-        echo "map"
+      if index(s:circle_conf.map, c) != -1
         call s:show_next(1)
-      elseif c == s:circle_conf.map_undo
-        echo "map_undo"
+      elseif index(s:circle_conf.map_undo, c) != -1
         call s:show_next(-1)
-      elseif c == s:circle_conf.map_del
-        echo "map_del"
+      elseif index(s:circle_conf.map_del, c) != -1
         exe s:circle_conf.delcmd
       else
         let s:circle_conf = {}
         let s:circle_bufs = []
         let s:circle_idx = -1
         call grasshopper#tools#set_accesstick()
+        echo ""
         call feedkeys(c)
       endif
     endwhile
