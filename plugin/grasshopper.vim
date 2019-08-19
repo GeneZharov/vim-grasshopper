@@ -1,13 +1,8 @@
-if
-  \ exists("g:loaded_grasshopper") &&
-  \ g:loaded_grasshopper ||
-  \ !exists("g:grasshopper_config")
+if exists("g:loaded_grasshopper") && g:loaded_grasshopper
   finish
 endif
 let g:loaded_grasshopper = v:true
 
-call grasshopper#validation#valid_config(g:grasshopper_config)
-
 autocmd BufWinEnter * call grasshopper#circle#on_buf_enter()
 
-call grasshopper#init#create_mappings(g:grasshopper_config)
+command -nargs=1 Grasshopper call grasshopper#circle#start(<f-args>)

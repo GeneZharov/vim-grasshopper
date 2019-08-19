@@ -22,9 +22,18 @@ function! s:show_next(step) abort
 endfunction
 
 function! grasshopper#circle#start(conf_idx) abort
-  echo s:circle_conf
+  if !exists("g:grasshopper_config")
+    throw "g:grasshopper_config is not defined"
+  endif
+
+  call grasshopper#validate#validate_config(g:grasshopper_config)
+
   if len(s:circle_conf)
     return
+  endif
+
+  if !has_key(g:grasshopper_config, a:conf_idx)
+    throw a:conf_idx . " is not present in g:grasshopper_config"
   endif
 
   echo "init"

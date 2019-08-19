@@ -1,4 +1,4 @@
-function! grasshopper#validation#valid_config(conf) abort
+function! grasshopper#validate#validate_config(conf) abort
   if type(a:conf) != v:t_dict
     grasshopper#tools#warn("g:grasshopper_config must be a Dictionary")
     finish
