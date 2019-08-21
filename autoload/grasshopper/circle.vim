@@ -120,7 +120,7 @@ function! grasshopper#circle#start(conf_idx) abort
         call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
       elseif index(s:circle_map_del, c) != -1
         " Delete
-        exe s:circle_conf.delcmd
+        Bdelete
         call remove(s:circle_bufs, s:circle_idx)
         let s:circle_idx = grasshopper#util#shift_idx(0, len(s:circle_bufs), 0, s:circle_idx)
         call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
