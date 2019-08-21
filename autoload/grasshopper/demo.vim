@@ -13,7 +13,7 @@ endfunction
 function! grasshopper#demo#create_demo(conf_idx, bufs, idx) abort
   let s:content_winid = win_getid()
   exe printf(
-    \ "silent botright %dnew Grasshopper %s",
+    \ "silent botright %dnew Grasshopper for “%s”",
     \ len(a:bufs),
     \ a:conf_idx
     \ )
