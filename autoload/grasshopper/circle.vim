@@ -86,15 +86,17 @@ function! grasshopper#circle#start(conf_idx) abort
 
   let bufs = getbufinfo()
   let bufs_visible = tabpagebuflist()
-  let [current_buf] = filter(copy(bufs), {_, d -> d.bufnr == bufnr("")})
+  let current_buf = filter(
+    \ copy(bufs),
+    \ {_, d -> d.bufnr == bufnr("") && s:circle_conf.filter(d)}
+    \ )
 
   call filter(bufs, {_, d -> d.listed})
   call filter(bufs, {_, d -> index(bufs_visible, d.bufnr) == -1})
   call filter(bufs, {_, d -> s:circle_conf.filter(d)})
   call sort(bufs, {a, b -> s:get_accesstick(a) > s:get_accesstick(b)})
-  call insert(bufs, current_buf)
 
-  let s:circle_bufs = bufs
+  let s:circle_bufs = current_buf + bufs
   let s:circle_idx = 0
 
   if !empty(s:circle_bufs)
