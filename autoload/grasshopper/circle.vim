@@ -1,10 +1,12 @@
-let s:circle_conf_idx = ""
-let s:circle_conf = {}
-let s:circle_map = ""
-let s:circle_map_undo = ""
-let s:circle_map_del = ""
-let s:circle_bufs = []
-let s:circle_idx = -1
+function! s:set_defaults() abort
+  let s:circle_conf_idx = ""
+  let s:circle_conf = {}
+  let s:circle_map = ""
+  let s:circle_map_undo = ""
+  let s:circle_map_del = ""
+  let s:circle_bufs = []
+  let s:circle_idx = -1
+endfunction!
 
 function! s:get_accesstick(buf) abort
   return get(a:buf.variables, "grasshopper_accesstick", str2float("inf"))
@@ -94,12 +96,15 @@ function! grasshopper#circle#start(conf_idx) abort
   call filter(bufs, {_, d -> d.listed})
   call filter(bufs, {_, d -> index(bufs_visible, d.bufnr) == -1})
   call filter(bufs, {_, d -> s:circle_conf.filter(d)})
-  call sort(bufs, {a, b -> s:get_accesstick(a) > s:get_accesstick(b)})
+  call sort(bufs, {a, b -> s:get_accesstick(a) < s:get_accesstick(b)})
 
   let s:circle_bufs = current_buf + bufs
   let s:circle_idx = 0
 
-  if !empty(s:circle_bufs)
+  "echo map(copy(s:circle_bufs), {_, d -> [d.name, d.variables.grasshopper_accesstick]})
+  if empty(s:circle_bufs)
+    call s:set_defaults()
+  else
     call s:show_next(1)
     call grasshopper#demo#create_demo(
       \ s:circle_conf_idx,
@@ -126,12 +131,7 @@ function! grasshopper#circle#start(conf_idx) abort
         call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
       else
         " Exit
-        let s:circle_conf = {}
-        let s:circle_map = ""
-        let s:circle_map_undo = ""
-        let s:circle_map_del = ""
-        let s:circle_bufs = []
-        let s:circle_idx = -1
+        call s:set_defaults()
         call grasshopper#tools#set_accesstick()
         call grasshopper#demo#close_demo()
         echo ""
@@ -146,3 +146,5 @@ function! grasshopper#circle#on_buf_enter() abort
     call grasshopper#tools#set_accesstick()
   endif
 endfunction
+
+call s:set_defaults()

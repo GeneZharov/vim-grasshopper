@@ -4,8 +4,8 @@ let s:demo_bufnr = -1
 
 function! s:format_line(active, path)
   return printf(
-    \ " %s %s",
-    \ a:active ? "▶" : " ",
+    \ "  %s %s",
+    \ a:active ? "●" : " ",
     \ grasshopper#util#prettify_path(a:path)
     \ )
 endfunction
