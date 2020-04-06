@@ -6,7 +6,7 @@ function! s:set_defaults() abort
   let s:circle_map_del = ""
   let s:circle_bufs = []
   let s:circle_idx = -1
-endfunction!
+endfunction
 
 function! s:get_accesstick(buf) abort
   return get(a:buf.variables, "grasshopper_accesstick", str2float("inf"))
@@ -48,15 +48,26 @@ function! s:show_prompt() abort
   echohl None
 endfunction
 
+function! s:stop_circle() abort
+  call s:set_defaults()
+  call grasshopper#tools#set_accesstick()
+  "call grasshopper#demo#close_demo()
+  redraw!
+    " Clear the echo output
+    " `echo` in this case causes 'Press ENTER to continue'
+endfunction
+
 function! grasshopper#circle#start(conf_idx) abort
   if !exists("g:grasshopper_config")
     throw "g:grasshopper_config is not defined"
   endif
 
-  call grasshopper#validate#validate_config(g:grasshopper_config)
+  if !grasshopper#validate#valid_config(g:grasshopper_config)
+    return
+  endif
 
   if !empty(s:circle_conf)
-    " If some circle is already in action, then user's :map must be suppressed
+    " If a circle is already in action, then the user's :map must be suppressed
     return
   endif
 
@@ -96,45 +107,50 @@ function! grasshopper#circle#start(conf_idx) abort
   call filter(bufs, {_, d -> d.listed})
   call filter(bufs, {_, d -> index(bufs_visible, d.bufnr) == -1})
   call filter(bufs, {_, d -> s:circle_conf.filter(d)})
-  call sort(bufs, {a, b -> s:get_accesstick(a) < s:get_accesstick(b)})
+  call sort(bufs, {a, b -> s:get_accesstick(b) - s:get_accesstick(a)})
 
   let s:circle_bufs = current_buf + bufs
   let s:circle_idx = 0
 
-  "echo map(copy(s:circle_bufs), {_, d -> [d.name, d.variables.grasshopper_accesstick]})
+  "echo map(
+  "  \ copy(s:circle_bufs),
+  "  \ {_, d -> [d.name, d.variables.grasshopper_accesstick]})
   if empty(s:circle_bufs)
     call s:set_defaults()
   else
-    call s:show_next(1)
-    call grasshopper#demo#create_demo(
-      \ s:circle_conf_idx,
-      \ s:circle_bufs,
-      \ s:circle_idx
-      \ )
+    call s:show_next(empty(current_buf) ? 0 : 1)
+    "call grasshopper#demo#create_demo(
+    "  \ s:circle_conf_idx,
+    "  \ s:circle_bufs,
+    "  \ s:circle_idx
+    "  \ )
     while !empty(s:circle_conf)
-      redraw " otherwise vim does not update the window content prior getchar()
-      "call s:show_prompt()
-      let c = grasshopper#tools#getc()
+      redraw " otherwise Vim does not update the window content prior getchar()
+      call s:show_prompt()
+      "echo "js 3/8 "
+      try
+        let c = grasshopper#tools#getc()
+      catch /^Vim:Interrupt$/ " in case of <C-c>
+        call s:stop_circle()
+        return
+      endtry
       if index(s:circle_map, c) != -1
         " Next
         call s:show_next(1)
-        call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
+        "call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
       elseif index(s:circle_map_undo, c) != -1
         " Undo
         call s:show_next(-1)
-        call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
+        "call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
       elseif index(s:circle_map_del, c) != -1
         " Delete
         Bdelete
         call remove(s:circle_bufs, s:circle_idx)
         let s:circle_idx = grasshopper#util#shift_idx(0, len(s:circle_bufs), 0, s:circle_idx)
-        call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
+        "call grasshopper#demo#update_demo(s:circle_bufs, s:circle_idx)
       else
         " Exit
-        call s:set_defaults()
-        call grasshopper#tools#set_accesstick()
-        call grasshopper#demo#close_demo()
-        echo ""
+        call s:stop_circle()
         call feedkeys(c)
       endif
     endwhile

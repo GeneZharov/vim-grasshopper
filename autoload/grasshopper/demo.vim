@@ -2,7 +2,7 @@ let s:content_winid = -1
 let s:demo_bufnr = -1
 let s:demo_bufnr = -1
 
-function! s:format_line(active, path)
+function! s:format_line(active, path) abort
   return printf(
     \ "  %s %s",
     \ a:active ? "●" : " ",

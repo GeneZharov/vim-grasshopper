@@ -1,3 +1,14 @@
+function! grasshopper#util#all(list, test) abort
+  let i = 0
+  while (i < len(a:list))
+    if (!a:test(i, a:list[i]))
+      return v:false
+    endif
+    let i += 1
+  endwhile
+  return v:true
+endfunction
+
 function! grasshopper#util#shift_idx(min, max, step, n) abort
   let len = a:max - a:min
   let m = a:n + a:step
