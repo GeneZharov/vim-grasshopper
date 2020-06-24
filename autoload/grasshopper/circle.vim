@@ -1,3 +1,5 @@
+let s:INFINITY = 1 / 0
+
 function! s:set_defaults() abort
   let s:circle_conf_idx = ""
   let s:circle_conf = {}
@@ -9,7 +11,7 @@ function! s:set_defaults() abort
 endfunction
 
 function! s:get_accesstick(buf) abort
-  return get(a:buf.variables, "grasshopper_accesstick", str2float("inf"))
+  return get(a:buf.variables, "grasshopper_accesstick", s:INFINITY)
 endfunction
 
 function! s:getmap(conf, conf_idx, prop, global) abort
